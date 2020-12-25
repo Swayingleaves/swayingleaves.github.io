@@ -5,20 +5,12 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>smart_auth_util 权限认证工具 - Swayingleaves</title>
+    <title>Feign-provider-customer - Swayingleaves</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="swayingleaves blog,"> 
-    <meta name="description" content="权限认证工具Github地址 
-注意事项
- 配置本地maven 以适配私服，或者修改为自己的私服配置
-
-
-pom引入依赖
-
-&amp;lt;dependency&amp;gt;
-    &amp;lt;groupId&amp;gt,"> 
+    <meta name="description" content="项目中常用的架构如图，Erueka作为服务的注册和发现中心，服务提供者provider和消费者consumer通过server注册和发现服务，本文主要讨论搭建如图架构和使用Feign实现声明式调用。,"> 
     <meta name="author" content="zhenglin"> 
     <link rel="alternative" href="atom.xml" title="Swayingleaves" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.png"> 
@@ -66,7 +58,7 @@ pom引入依赖
     <div class="navigation animated fadeIn fast delay-1s">
         <img id="home-icon" class="icon-home" src="/img/favicon.png" alt="" data-url="http://example.com">
         <div id="play-icon" title="Play/Pause" class="iconfont icon-play"></div>
-        <h3 class="subtitle">smart_auth_util 权限认证工具</h3>
+        <h3 class="subtitle">Feign-provider-customer</h3>
         <div class="social">
             <!--        <div class="like-icon">-->
             <!--            <a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
@@ -96,25 +88,25 @@ pom引入依赖
         <div class="else">
             <p class="animated fadeInDown">
                 
-                <a href="/categories/开源项目"><b>「
-                    </b>开源项目<b> 」</b></a>
+                <a href="/categories/springcloud"><b>「
+                    </b>SPRINGCLOUD<b> 」</b></a>
                 
                 十二月 25, 2020
             </p>
-            <h3 class="post-title animated fadeInDown"><a href="/2020/12/25/2020-09-11-smart-auth-util/" title="smart_auth_util 权限认证工具" class="">smart_auth_util 权限认证工具</a>
+            <h3 class="post-title animated fadeInDown"><a href="/2020/12/25/2020-08-08-Feign-provider-customer/" title="Feign-provider-customer" class="">Feign-provider-customer</a>
             </h3>
             
             <p class="post-count animated fadeInDown">
                 
                 <span>
                     <b class="iconfont icon-text2"></b> <i>文章字数</i>
-                    1.2k
+                    4k
                 </span>
                 
                 
                 <span>
                     <b class="iconfont icon-timer__s"></b> <i>阅读约需</i>
-                    1 mins.
+                    4 mins.
                 </span>
                 
                 
@@ -127,7 +119,7 @@ pom引入依赖
             </p>
             
             
-            <ul class="animated fadeInDown post-tags-list" itemprop="keywords"><li class="animated fadeInDown post-tags-list-item"><a class="animated fadeInDown post-tags-list-link" href="/tags/%E5%BC%80%E6%BA%90/" rel="tag">开源</a></li><li class="animated fadeInDown post-tags-list-item"><a class="animated fadeInDown post-tags-list-link" href="/tags/%E8%AE%A4%E8%AF%81/" rel="tag">认证</a></li></ul>
+            <ul class="animated fadeInDown post-tags-list" itemprop="keywords"><li class="animated fadeInDown post-tags-list-item"><a class="animated fadeInDown post-tags-list-link" href="/tags/springcloud/" rel="tag">springcloud</a></li></ul>
             
         </div>
     </div>
@@ -148,43 +140,126 @@ pom引入依赖
 <div class="article">
     <div class='main'>
         <div class="content markdown animated fadeIn">
-            <h1 id="权限认证工具"><a href="#权限认证工具" class="headerlink" title="权限认证工具"></a>权限认证工具</h1><p><a target="_blank" rel="noopener" href="https://github.com/Swayingleaves/smart-auth-util">Github地址 </a></p>
-<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><blockquote>
-<p> 配置本地maven 以适配私服，或者修改为自己的私服配置</p>
-</blockquote>
-<blockquote>
-<p>pom引入依赖</p>
-</blockquote>
-<pre><code class="xml">&lt;dependency&gt;
-    &lt;groupId&gt;com.swayingleaves&lt;/groupId&gt;
-    &lt;artifactId&gt;smart-auth-util&lt;/artifactId&gt;
-    &lt;version&gt;$&#123;latest-version&#125;&lt;/version&gt;
-&lt;/dependency&gt;</code></pre>
-<blockquote>
-<ul>
-<li>要使用auth-util,使用的项目需要的Redis配置相同</li>
-<li>实现强依赖Redis，请配置Redis相关</li>
-</ul>
-</blockquote>
+            <p>项目中常用的架构如图，Erueka作为服务的注册和发现中心，服务提供者provider和消费者consumer通过server注册和发现服务，本文主要讨论搭建如图架构和使用Feign实现声明式调用。sever和client参考之前的文章】</p>
+<p><img src="/images/image-10.png"></p>
+<h3 id="1、provider"><a href="#1、provider" class="headerlink" title="1、provider"></a>1、provider</h3><p>yaml配置</p>
 <pre><code class="yaml">spring:
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    database: xx
-    password: xxxx</code></pre>
-<blockquote>
-<ul>
-<li>启动类添加扫描包注解</li>
-</ul>
-</blockquote>
-<pre><code class="java">@ComponentScan(basePackages = &#123;&quot;com.swayingleaves&quot;&#125;)</code></pre>
-<blockquote>
-<ul>
-<li>不一定能适用于大家的项目，但是看下实现逻辑就好</li>
-</ul>
-</blockquote>
-<h2 id="使用说明"><a href="#使用说明" class="headerlink" title="使用说明"></a>使用说明</h2><p>详细的参看</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/Swayingleaves/smart-auth-util">Github地址 </a></p>
+  application:
+    #    用户指定注册到server上的应用名
+    name: provider
+eureka:
+  client:
+    service-url:
+      defaultZone: http://test:12345@localhost:8761/eureka/,http://test:12345@localhost:8762/eureka/,http://test:12345@localhost:8763/eureka/
+  instance:
+    #    将自己的ip注册上
+    prefer-ip-address: true
+server:
+  port: 8759</code></pre>
+<p>启动类</p>
+<pre><code class="java">package com.example.eurekaprovider;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class EurekaProviderApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(EurekaProviderApplication.class, args);
+    &#125;
+
+&#125;</code></pre>
+<p>这里作为服务提供者，提供一个接口：</p>
+<pre><code class="java">package com.example.eurekaprovider.controller;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * &lt;p&gt;描述: 服务提供 &lt;/p&gt;
+ *
+ * @author zhenglin
+ * @since 2020/8/8 10:16 上午
+ */
+@RestController
+@Slf4j
+public class InfoController &#123;
+
+    @GetMapping(&quot;/getInfo&quot;)
+    public String getInfo(String msg)&#123;
+        return msg+&quot;_hello&quot;;
+    &#125;
+&#125;</code></pre>
+<h3 id="2、customer"><a href="#2、customer" class="headerlink" title="2、customer"></a>2、customer</h3><p>maven引入依赖</p>
+<pre><code class="xml"> &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-feign&lt;/artifactId&gt;
+            &lt;version&gt;1.4.7.RELEASE&lt;/version&gt;
+  &lt;/dependency&gt;</code></pre>
+<p>启动加上@EnableFeignClients注解</p>
+<pre><code class="java">package com.example.eureka;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class EurekaCustomerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(EurekaCustomerApplication.class, args);
+    &#125;
+
+&#125;</code></pre>
+<p>创建一个接口，创建要调用的方法使其和provider提供的接口一致</p>
+<pre><code class="java">package com.example.eureka.service;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@FeignClient(name= &quot;provider&quot;)
+public interface HelloService &#123;
+
+     //@RequestParam对应GET方法是必要的，否则请求将转换为POST调用出现Method Not Allowed
+    @GetMapping(value = &quot;/getInfo&quot;)
+    String getInfo(@RequestParam String msg);
+&#125;</code></pre>
+<p>然后写一个controller调用接口</p>
+<pre><code class="java">package com.example.eureka.controller;
+
+import com.example.eureka.service.HelloService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * &lt;p&gt;描述: controller &lt;/p&gt;
+ *
+ * @author zhenglin
+ * @since 2020/8/8 10:25 上午
+ */
+@RestController
+public class HelloController &#123;
+
+    @Autowired
+    HelloService helloService;
+
+    @GetMapping(&quot;/testGetInfo&quot;)
+    public String getInfo(String msg)&#123;
+        return helloService.getInfo(msg);
+    &#125;
+&#125;</code></pre>
+<p>访问：localhost:8760/testGetInfo</p>
+<p>返回</p>
+<p><img src="/images/image-11.png"></p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls"
@@ -243,7 +318,7 @@ pom引入依赖
             <div class="box sticky animated fadeInRight faster">
                 <div id="toc" class="subbox">
                     <h4>目录</h4>
-                    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9D%83%E9%99%90%E8%AE%A4%E8%AF%81%E5%B7%A5%E5%85%B7"><span class="toc-number">1.</span> <span class="toc-text">权限认证工具</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.1.</span> <span class="toc-text">注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"><span class="toc-number">1.2.</span> <span class="toc-text">使用说明</span></a></li></ol></li></ol>
+                    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81provider"><span class="toc-number">1.</span> <span class="toc-text">1、provider</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81customer"><span class="toc-number">2.</span> <span class="toc-text">2、customer</span></a></li></ol>
                 </div>
             </div>
             
