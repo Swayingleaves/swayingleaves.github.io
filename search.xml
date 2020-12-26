@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>Pandas常用操作</title>
+      <link href="2020/12/26/2020-11-26-Pandas%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/"/>
+      <url>2020/12/26/2020-11-26-Pandas%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/</url>
+      
+        <content type="html"><![CDATA[<p>判断某列的值是否在列表里</p><pre><code class="python">df[df[&#39;f1&#39;].isin(list)]</code></pre><p>判断某列是否含有某个字符串</p><pre><code class="python"># 注意列的type 为 strdf[df[&#39;f1&#39;].str.contains(&#39;str&#39;)]</code></pre><p>多个条件筛选列</p><pre><code class="python"># 且df[df[&#39;f1&#39;]== &#39;a&#39; &amp; df[&#39;f2&#39;]== &#39;b&#39;]# 或df[df[&#39;f1&#39;]== &#39;a&#39; | df[&#39;f2&#39;]== &#39;b&#39;]</code></pre><p>遍历df并修改值</p><pre><code class="python"> for index in df.index:     print(df.at[index,&#39;列名&#39;])     df.at[index,&#39;列名&#39;] = &#39;update_value&#39;</code></pre><p>也可以</p><pre><code class="python">for index,row in df.iterrows():  row[&#39;f1&#39;]  # 修改值  df.at[i,&#39;f1&#39;] = &#39;&#39;</code></pre><p>按某列groupBy构建字典并修改聚合分组的结果</p><pre><code class="python">df.groupby(&#39;f1&#39;).apply(lamba x:x[&#39;f2&#39;].astype(str).values).to_dict()df.groupby(&#39;f1&#39;).apply(lamba x:x[&#39;f2&#39;].astype(str).values + &#39;@&#39; + x[&#39;f3&#39;].astype(str).values).to_dict()def get_handle(x):   .....   return xxdf.groupby(&#39;f1&#39;).apply(lamba x:get_handle(x)).to_dict()</code></pre><p>列值转列表</p><pre><code class="python">df[&#39;f1&#39;].tolist()</code></pre><p>只输出某列</p><pre><code class="python">df[&#39;f1&#39;].to_csv()df[[&#39;f1&#39;,&#39;f2&#39;,&#39;f3&#39;]].to_csv()</code></pre><p>输出时不带索引，不带header列名</p><pre><code class="python">df.to_excel(output_path,index=False)# 不带header 列名df.to_excel(output_path,index=False,header=False)</code></pre><p>输出多个sheet</p><pre><code class="python">    writer1 = pd.ExcelWriter(output_file1)    x.to_excel(writer1, &#39;数据&#39;)    info1 = pd.DataFrame(data=&#123;&#39;说明&#39;: [&#39;更正基线&#39;]&#125;)    info1.to_excel(writer1, &#39;说明&#39;, index=False)    writer1.save()</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+          <category> pandas </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+            <tag> pandas </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>SQLAlchemy</title>
+      <link href="2020/12/26/2020-11-26-SQLAlchemy/"/>
+      <url>2020/12/26/2020-11-26-SQLAlchemy/</url>
+      
+        <content type="html"><![CDATA[<p>在我第一次搜索类似Java的mybatis工具时发现了Python的ORM框架sqlalchemy，此后在工作中使用颇多，发现一些功能还是非常好用的。</p><blockquote><p><strong>version</strong> = “1.3.20”</p></blockquote><p>首先我们install module SQLAlchemy，创建一个连接Connecting，我这里是使用PostgreSQL</p><pre><code class="python">engine = create_engine(&#39;postgresql+psycopg2://username:password@ip:port/database&#39;, echo=True)</code></pre><p>创建一个session</p><pre><code class="python">session = create_session(engine, autocommit=False)</code></pre><p>Declare a Mapping 创建一个orm映射对象</p><pre><code class="python">from sqlalchemy import Column, TEXT, INT, TIMESTAMP, FLOATfrom sqlalchemy.ext.declarative import declarative_baseimport base_configBase = declarative_base()schema_name = &#39;BASE_INFO&#39;table_name = &#39;CM_H&#39;class CM(Base):    # 对应的table的名称    __tablename__ = table_name    # 对应的schema的名称 默认schema为public    __table_args__ = (&#123;&quot;schema&quot;: schema_name&#125;)    DOMAIN = Column(TEXT)    SUBJID = Column(TEXT)    VISITNUM = Column(TEXT)    CMSEQ = Column(INT)    CMREFID = Column(TEXT)    CMTRT = Column(TEXT)    CMMODIFY = Column(TEXT)    CMDECOD = Column(TEXT)    CMCAT = Column(TEXT)    CMDOSTOT = Column(FLOAT)    CMDOSU = Column(TEXT)    CMDOSFRM = Column(TEXT)    CMDOSFRQ = Column(TEXT)    CMROUTE = Column(TEXT)    CMGRPID = Column(TEXT)    CMDTC = Column(TIMESTAMP)    CMSTDTC = Column(TIMESTAMP)    CMENDTC = Column(TIMESTAMP)    XCMADDIT = Column(TEXT)    XCMSOURC = Column(TEXT)    CMATC = Column(TEXT)    UPDATE_FLAG = Column(INT)    __mapper_args__ = &#123;        &#39;primary_key&#39;: [CMSEQ]    &#125;</code></pre><p>查询</p><pre><code class="python"># 查询全部session.query(CM).all()# 查询第一个session.query(CM).first()# 只查询CMSEQ和CMMODIFY字段，并且按条件过滤# sql = select &quot;CMSEQ&quot;,&quot;CMMODIFY&quot; from &quot;CM&quot; where &quot;CMATC&quot; is null and &quot;UPDATE_FLAG&quot; = 0 limit 1000d = session.query(CM.CMSEQ, CM.CMMODIFY).filter(CM.CMATC == None, CM.UPDATE_FLAG == 0).limit(1000)for i in d:   print(i)</code></pre><p>批量修改</p><pre><code class="python">update_list = [&#123;id:v1,up_filed1:up_value1,up_filed2:up_value2&#125;]session.bulk_update_mappings(CM, update_list)</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+            <tag> SQLAlchemy </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Feign-Hystrix</title>
+      <link href="2020/12/26/2020-08-08-Feign-Hystrix/"/>
+      <url>2020/12/26/2020-08-08-Feign-Hystrix/</url>
+      
+        <content type="html"><![CDATA[<p>使用Hystrix作为熔断器使得调用服务时出现的各种崩溃得到保护，这里我们只讨论如何实现。</p><p>如前几篇文章我们搭建了一个高可用的sever服务，并注册了服务provider和服务customer，现在我们使用Hystrix来模拟provider服务下线的作用。</p><p>创建一个实现类实现HelloService，并重写返回</p><pre><code class="java">@Componentpublic class HelloHystrixServiceImpl implements HelloService&#123;    @Override    public String getInfo(@RequestParam String msg) &#123;        return &quot;this is not working&quot;;    &#125;&#125;</code></pre><p>在HelloService指定fallback的处理</p><pre><code class="java">@FeignClient(name= &quot;provider&quot;,fallback = HelloHystrixServiceImpl.class)public interface HelloService &#123;    @GetMapping(value = &quot;/getInfo&quot;)    String getInfo(@RequestParam String msg);&#125;</code></pre><p>先调用一下接口: localhost:8760/testGetInfo?msg=zl</p><p><img src="/images/image-12.png"></p><p>kill掉provider的服务，再调用接口</p><p><img src="/images/image-13.png"></p><p>再启动provider，稍等一会儿，接口又可以正常服务了</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> springcloud </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> springcloud </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>sql中的in和exists</title>
+      <link href="2020/12/26/2020-10-29-sql%E4%B8%AD%E7%9A%84in-%E5%92%8Cexists/"/>
+      <url>2020/12/26/2020-10-29-sql%E4%B8%AD%E7%9A%84in-%E5%92%8Cexists/</url>
+      
+        <content type="html"><![CDATA[<p>如果查询的两个表大小相当，那么用in和exists差别不大；如果两个表中一个较小一个较大，则子查询表大的用exists，子查询表小的用in；</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> mysql </tag>
+            
+            <tag> sql优化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>RestTemplate解析Gzip数据</title>
+      <link href="2020/12/26/2020-10-23-RestTemplate%E8%A7%A3%E6%9E%90Gzip%E6%95%B0%E6%8D%AE/"/>
+      <url>2020/12/26/2020-10-23-RestTemplate%E8%A7%A3%E6%9E%90Gzip%E6%95%B0%E6%8D%AE/</url>
+      
+        <content type="html"><![CDATA[<h1 id="RestTemplate解析Gzip数据"><a href="#RestTemplate解析Gzip数据" class="headerlink" title="RestTemplate解析Gzip数据"></a>RestTemplate解析Gzip数据</h1><p>若request时header添加了接收服务数据可以为gzip压缩数据</p><pre><code class="java">httpHeaders.add(&quot;Accept-Encoding&quot;,&quot;gzip, deflate&quot;);</code></pre><p>服务器返回压缩数据时，常规解析数据时会出现乱码问题,这里如果使用RestTemplate可以使用Apache httpclient，Apache HttpClient 支持gzip编码，要使用这个功能，构造HttpCOmponentsClientHttpRequestFactory</p><pre><code class="xml"> &lt;dependency&gt;   &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;   &lt;artifactId&gt;httpclient&lt;/artifactId&gt;   &lt;version&gt;4.5.13&lt;/version&gt; &lt;/dependency&gt;</code></pre><pre><code class="java">@Bean    public RestTemplate restTemplate()&#123;        RestTemplate restTemplate = new RestTemplate(                // 使用HttpClient，支持GZIP                new HttpComponentsClientHttpRequestFactory());        restTemplate.getMessageConverters().set(1,                // 支持中文编码                new StringHttpMessageConverter(StandardCharsets.UTF_8));        return restTemplate;    &#125;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> springboot </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> springboot </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Feign-provider-customer</title>
+      <link href="2020/12/25/2020-08-08-Feign-provider-customer/"/>
+      <url>2020/12/25/2020-08-08-Feign-provider-customer/</url>
+      
+        <content type="html"><![CDATA[<p>项目中常用的架构如图，Erueka作为服务的注册和发现中心，服务提供者provider和消费者consumer通过server注册和发现服务，本文主要讨论搭建如图架构和使用Feign实现声明式调用。sever和client参考之前的文章】</p><p><img src="/images/image-10.png"></p><h3 id="1、provider"><a href="#1、provider" class="headerlink" title="1、provider"></a>1、provider</h3><p>yaml配置</p><pre><code class="yaml">spring:  application:    #    用户指定注册到server上的应用名    name: providereureka:  client:    service-url:      defaultZone: http://test:12345@localhost:8761/eureka/,http://test:12345@localhost:8762/eureka/,http://test:12345@localhost:8763/eureka/  instance:    #    将自己的ip注册上    prefer-ip-address: trueserver:  port: 8759</code></pre><p>启动类</p><pre><code class="java">package com.example.eurekaprovider;import org.springframework.boot.SpringApplication;import org.springframework.boot.autoconfigure.SpringBootApplication;import org.springframework.cloud.client.discovery.EnableDiscoveryClient;@SpringBootApplication@EnableDiscoveryClientpublic class EurekaProviderApplication &#123;    public static void main(String[] args) &#123;        SpringApplication.run(EurekaProviderApplication.class, args);    &#125;&#125;</code></pre><p>这里作为服务提供者，提供一个接口：</p><pre><code class="java">package com.example.eurekaprovider.controller;import lombok.extern.slf4j.Slf4j;import org.springframework.web.bind.annotation.GetMapping;import org.springframework.web.bind.annotation.RestController;/** * &lt;p&gt;描述: 服务提供 &lt;/p&gt; * * @author zhenglin * @since 2020/8/8 10:16 上午 */@RestController@Slf4jpublic class InfoController &#123;    @GetMapping(&quot;/getInfo&quot;)    public String getInfo(String msg)&#123;        return msg+&quot;_hello&quot;;    &#125;&#125;</code></pre><h3 id="2、customer"><a href="#2、customer" class="headerlink" title="2、customer"></a>2、customer</h3><p>maven引入依赖</p><pre><code class="xml"> &lt;dependency&gt;            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;            &lt;artifactId&gt;spring-cloud-starter-feign&lt;/artifactId&gt;            &lt;version&gt;1.4.7.RELEASE&lt;/version&gt;  &lt;/dependency&gt;</code></pre><p>启动加上@EnableFeignClients注解</p><pre><code class="java">package com.example.eureka;import org.springframework.boot.SpringApplication;import org.springframework.boot.autoconfigure.SpringBootApplication;import org.springframework.cloud.client.discovery.EnableDiscoveryClient;import org.springframework.cloud.openfeign.EnableFeignClients;@SpringBootApplication@EnableDiscoveryClient@EnableFeignClientspublic class EurekaCustomerApplication &#123;    public static void main(String[] args) &#123;        SpringApplication.run(EurekaCustomerApplication.class, args);    &#125;&#125;</code></pre><p>创建一个接口，创建要调用的方法使其和provider提供的接口一致</p><pre><code class="java">package com.example.eureka.service;import org.springframework.cloud.openfeign.FeignClient;import org.springframework.web.bind.annotation.GetMapping;import org.springframework.web.bind.annotation.RequestParam;@FeignClient(name= &quot;provider&quot;)public interface HelloService &#123;     //@RequestParam对应GET方法是必要的，否则请求将转换为POST调用出现Method Not Allowed    @GetMapping(value = &quot;/getInfo&quot;)    String getInfo(@RequestParam String msg);&#125;</code></pre><p>然后写一个controller调用接口</p><pre><code class="java">package com.example.eureka.controller;import com.example.eureka.service.HelloService;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.web.bind.annotation.GetMapping;import org.springframework.web.bind.annotation.RestController;/** * &lt;p&gt;描述: controller &lt;/p&gt; * * @author zhenglin * @since 2020/8/8 10:25 上午 */@RestControllerpublic class HelloController &#123;    @Autowired    HelloService helloService;    @GetMapping(&quot;/testGetInfo&quot;)    public String getInfo(String msg)&#123;        return helloService.getInfo(msg);    &#125;&#125;</code></pre><p>访问：localhost:8760/testGetInfo</p><p>返回</p><p><img src="/images/image-11.png"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> springcloud </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> springcloud </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Eureka-client</title>
+      <link href="2020/12/25/2020-08-07-Eureka-client/"/>
+      <url>2020/12/25/2020-08-07-Eureka-client/</url>
+      
+        <content type="html"><![CDATA[<p>如果我们已经搭建了(高可用)的<a href="https://swayingleaves.github.io/2020/12/25/2020-08-07-Eureka-server/">server</a>服务注册中心，那么现在可以将client端也注册到server。</p><h3 id="1、配置ymal"><a href="#1、配置ymal" class="headerlink" title="1、配置ymal"></a>1、配置ymal</h3><pre><code class="yaml">spring:  application:#    用户指定注册到server上的应用名    name: clienteureka:  client:    service-url:      defaultZone: http://test:12345@localhost:8761/eureka/,http://test:12345@localhost:8762/eureka/  instance:#    将自己的ip注册上    prefer-ip-address: trueserver:  port: 8760</code></pre><h3 id="2、启动类加上注解-EnableDiscoveryClient"><a href="#2、启动类加上注解-EnableDiscoveryClient" class="headerlink" title="2、启动类加上注解@EnableDiscoveryClient"></a>2、启动类加上注解@EnableDiscoveryClient</h3><pre><code class="java">package com.example.eureka;import org.springframework.boot.SpringApplication;import org.springframework.boot.autoconfigure.SpringBootApplication;import org.springframework.cloud.client.discovery.EnableDiscoveryClient;@SpringBootApplication@EnableDiscoveryClientpublic class EurekaProviderApplication &#123;    public static void main(String[] args) &#123;        SpringApplication.run(EurekaProviderApplication.class, args);    &#125;&#125;</code></pre><h3 id="3、启动"><a href="#3、启动" class="headerlink" title="3、启动"></a>3、启动</h3><h3 id="4、访问控制台页面"><a href="#4、访问控制台页面" class="headerlink" title="4、访问控制台页面"></a>4、访问控制台页面</h3><p>可以看到client端已经注册上来了</p><p><img src="/images/1-5.png"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> springcloud </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> springcloud </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Eureka-server</title>
+      <link href="2020/12/25/2020-08-07-Eureka-server/"/>
+      <url>2020/12/25/2020-08-07-Eureka-server/</url>
+      
+        <content type="html"><![CDATA[<h3 id="1、添加maven依赖"><a href="#1、添加maven依赖" class="headerlink" title="1、添加maven依赖"></a>1、添加maven依赖</h3><p>这里要注意springboot和springcloud的版本对应，写这篇文章时使用的是当时最新的版本：<a href="https://spring.io/projects/spring-cloud">https://</a><a href="https://spring.io/projects/spring-cloud">spring.io/projects/spring-cloud</a></p><p><img src="/images/1-1.png"></p><p>配置如下</p><pre><code class="xml">&lt;parent&gt;        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;        &lt;version&gt;2.3.2.RELEASE&lt;/version&gt;        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;    &lt;/parent&gt;&lt;dependencyManagement&gt;        &lt;dependencies&gt;            &lt;dependency&gt;                &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;                &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;                &lt;version&gt;Hoxton.SR5&lt;/version&gt;                &lt;type&gt;pom&lt;/type&gt;                &lt;scope&gt;import&lt;/scope&gt;            &lt;/dependency&gt;        &lt;/dependencies&gt;    &lt;/dependencyManagement&gt; &lt;dependencies&gt;        &lt;dependency&gt;            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;            &lt;artifactId&gt;spring-cloud-starter-eureka-server&lt;/artifactId&gt;            &lt;version&gt;1.4.7.RELEASE&lt;/version&gt;        &lt;/dependency&gt;        &lt;dependency&gt;            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;            &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;        &lt;/dependency&gt;    &lt;/dependencies&gt;</code></pre><h3 id="2、yml配置"><a href="#2、yml配置" class="headerlink" title="2、yml配置"></a>2、yml配置</h3><pre><code class="yaml">spring:  application:    name: eureka-server  security:    basic:      enable: true    user:      name: test      password: 12345---spring:  profiles: s1server:  port: 8761eureka:  instance:    hostname: server1  client:    register-with-eureka: true    fetch-registry: true    service-url:      defaultZone: http://test:12345@localhost:8762/eureka,http://test:12345@localhost:8763/eureka---spring:  profiles: s2server:  port: 8762eureka:  instance:    hostname: server2  client:    register-with-eureka: true    fetch-registry: true    service-url:      defaultZone: http://test:12345@localhost:8761/eureka,http://test:12345@localhost:8763/eureka---spring:  profiles: s3server:  port: 8763eureka:  instance:    hostname: server3  client:    register-with-eureka: true    fetch-registry: true    service-url:      defaultZone: http://test:12345@localhost:8761/eureka,http://test:12345@localhost:8762/eureka</code></pre><p>这里需要注意几点：</p><p>1、引入spring-security添加了用户认证，所以service-url连接信息上需要写上用户名和密码</p><p>2、引入spring-security认证，会报如下错误</p><pre><code class="java">com.netflix.discovery.shared.transport.TransportException: Cannot execute request on any known server    at com.netflix.discovery.shared.transport.decorator.RetryableEurekaHttpClient.execute(RetryableEurekaHttpClient.java:112) ~[eureka-client-1.9.21.jar:1.9.21]    at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator.register(EurekaHttpClientDecorator.java:56) ~[eureka-client-1.9.21.jar:1.9.21]    at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator$1.execute(EurekaHttpClientDecorator.java:59) ~[eureka-client-1.9.21.jar:1.9.21]    at com.netflix.discovery.shared.transport.decorator.SessionedEurekaHttpClient.execute(SessionedEurekaHttpClient.java:77) ~[eureka-client-1.9.21.jar:1.9.21]    at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator.register(EurekaHttpClientDecorator.java:56) ~[eureka-client-1.9.21.jar:1.9.21]    at com.netflix.discovery.DiscoveryClient.register(DiscoveryClient.java:857) ~[eureka-client-1.9.21.jar:1.9.21]    at com.netflix.discovery.InstanceInfoReplicator.run(InstanceInfoReplicator.java:121) ~[eureka-client-1.9.21.jar:1.9.21]    at com.netflix.discovery.InstanceInfoReplicator$1.run(InstanceInfoReplicator.java:101) [eureka-client-1.9.21.jar:1.9.21]    at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [na:1.8.0_231]    at java.util.concurrent.FutureTask.run(FutureTask.java:266) [na:1.8.0_231]    at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$201(ScheduledThreadPoolExecutor.java:180) [na:1.8.0_231]    at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:293) [na:1.8.0_231]    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [na:1.8.0_231]    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [na:1.8.0_231]    at java.lang.Thread.run(Thread.java:748) [na:1.8.0_231]</code></pre><p>security默认启用了csrf检验我们需要关闭它</p><pre><code class="java">package com.example.eurekaserver.config;import org.springframework.context.annotation.Configuration;import org.springframework.security.config.annotation.web.builders.HttpSecurity;import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;/** * @author zhenglin */@EnableWebSecurity@Configurationpublic class WebSecurityConfig extends WebSecurityConfigurerAdapter &#123;    @Override    protected void configure(HttpSecurity http) throws Exception &#123;        //关闭csrf        http.csrf().disable();        //开启认证        http.authorizeRequests().anyRequest().authenticated().and().httpBasic();    &#125;&#125;</code></pre><h3 id="3、启动"><a href="#3、启动" class="headerlink" title="3、启动"></a>3、启动</h3><p>启动类上加入注解@EnableEurekaServer</p><pre><code class="java">package com.example.eurekaserver;import org.springframework.boot.SpringApplication;import org.springframework.boot.autoconfigure.SpringBootApplication;import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;@SpringBootApplication@EnableEurekaServerpublic class EurekaServerApplication &#123;    public static void main(String[] args) &#123;        SpringApplication.run(EurekaServerApplication.class, args);    &#125;&#125;</code></pre><p>使用idea配置两个启动文件分别指定不同的profiles</p><p><img src="/images/1-2.png"></p><p>然后分别run s1 s2 s3</p><h3 id="4、访问控制台页面"><a href="#4、访问控制台页面" class="headerlink" title="4、访问控制台页面"></a>4、访问控制台页面</h3><p>输入配置认证信息</p><p><img src="/images/1-3.png"></p><p>可以看到副本和实例都上来了</p><p><img src="/images/1-4.png"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> springcloud </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> springcloud </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL取每个分组后的top N优化</title>
+      <link href="2020/12/25/2020-06-16-MySQL%E5%8F%96%E6%AF%8F%E4%B8%AA%E5%88%86%E7%BB%84%E5%90%8E%E7%9A%84top-N%E4%BC%98%E5%8C%96/"/>
+      <url>2020/12/25/2020-06-16-MySQL%E5%8F%96%E6%AF%8F%E4%B8%AA%E5%88%86%E7%BB%84%E5%90%8E%E7%9A%84top-N%E4%BC%98%E5%8C%96/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p> 表主要结构如下，需求为取时间范围内的某品牌的每个平台下的view_or_engagement最大的3条</p></blockquote><pre><code class="sql">CREATE TABLE `word_cloud` (  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT &#39;主键&#39;,  `brand` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT &#39;品牌&#39;,  `platform` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT &#39;平台&#39;,  `view_or_engagement` int(11) DEFAULT NULL COMMENT &#39;阅读或订阅&#39;,  `article` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT &#39;文章&#39;,  `title` text COLLATE utf8mb4_unicode_ci COMMENT &#39;标题&#39;,  `url` text COLLATE utf8mb4_unicode_ci COMMENT &#39;链接&#39;,  `time` date DEFAULT NULL COMMENT &#39;时间&#39;,  `data_type` tinyint(1) DEFAULT NULL COMMENT &#39;类型&#39;,  `md5_flag` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT &#39;md5标志&#39;,  PRIMARY KEY (`id`),  KEY `K` (`data_type`) USING BTREE,  KEY `k_md5` (`md5_flag`) USING BTREE) ENGINE=InnoDB AUTO_INCREMENT=123698 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;</code></pre><blockquote><p> 优化前的SQL</p></blockquote><pre><code class="sql">SELECT brand,platform,view_or_engagement,title,url  FROM (    SELECT * FROM word_cloud WHERE brand = &#39;Siemens&#39; and time &gt;= &#39;2020-04-01&#39; and time&lt;&#39;2020-04-20&#39;) a WHERE (    SELECT count(*) FROM (    SELECT * FROM word_cloud WHERE  brand = &#39;Siemens&#39; and time &gt;= &#39;2020-04-01&#39; and time&lt;&#39;2020-04-20&#39;    ) b WHERE b.view_or_engagement &gt; a.view_or_engagement and a.data_type = b.data_type    and a.platform = b.platform and a.brand = b.brand) &lt; 3 ORDER BY view_or_engagement desc;</code></pre><blockquote><p> 优化后的SQL</p></blockquote><pre><code class="sql">SELECT brand,platform,view_or_engagement,title,url FROM(   SELECT brand,platform,view_or_engagement,title,url,    @order_rank := IF(@curr_ = platform,@order_rank + 1, 1) AS order_rank,    @curr_ := platform    FROM word_cloud    WHERE  brand = &#39;Siemens&#39;   and time &gt;= &#39;2020-04-01&#39; and time &lt; &#39;2020-04-20&#39;    ORDER BY platform,view_or_engagement desc  ) b WHERE order_rank &lt;= 3</code></pre><p>主要是使用了SQL变量，参考文章如下，点击查看</p><p><a href="https://towardsdatascience.com/mysql-how-to-write-a-query-that-returns-the-top-records-in-a-group-12865695f436">MySQL: How to Write a Query That Returns the Top Records in a Group</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> mysql </tag>
+            
+            <tag> sql优化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>spring-boot-pulsar</title>
+      <link href="2020/12/25/2020-09-12-spring-boot-pulsar/"/>
+      <url>2020/12/25/2020-09-12-spring-boot-pulsar/</url>
+      
+        <content type="html"><![CDATA[<h1 id="spring-pulsar工具"><a href="#spring-pulsar工具" class="headerlink" title="spring-pulsar工具"></a>spring-pulsar工具</h1><p><a href="https://github.com/Swayingleaves/spring-boot-starter-pulsar">Github 地址</a></p><blockquote><ul><li>pom引入依赖</li></ul></blockquote><pre><code class="xml">&lt;dependency&gt;    &lt;groupId&gt;com.swayingleaves&lt;/groupId&gt;    &lt;artifactId&gt;spring-boot-starter-pulsar&lt;/artifactId&gt;    &lt;version&gt;1.0.0.RELEASE&lt;/version&gt;&lt;/dependency&gt;</code></pre><blockquote><ul><li>application.yml 配置相关属性</li></ul></blockquote><pre><code class="yaml">pulsar:  # 服务器地址  serviceUrl: pulsar://127.0.0.1:6650  # io线程数默认10  ioThreads: 10  # listener线程数默认10  listenerThreads: 10  # JSON/JSONArray格式数据的生产者的topic，多个使用英文逗号分隔  jsonProducers: producer1-json  # string格式数据的生产者的topic，多个使用英文逗号分隔  stringProducers: producer2-str  # 消费者topic，多个使用英文逗号分隔  consumers: consumers1,consumers2,consumers3</code></pre><blockquote><ul><li>生产者使用示例</li></ul></blockquote><pre><code class="java">@SpringBootTestclass SpringBootStarterPulsarApplicationTests &#123;    @Autowired    PulsarTemplate pulsarTemplate;    @Test    void sendStrMsg() throws PulsarClientException &#123;        pulsarTemplate.sendStringMsg(&quot;topic&quot;,&quot;str&quot;);    &#125;    @Test    void sendJsonMsg() throws PulsarClientException &#123;        User user = User.builder()                .age(18)                .name(&quot;Jack&quot;)                .build();        pulsarTemplate.sendJsonMsg(&quot;topic&quot;,user);    &#125;    @Test    void sendJsonArrayMsg() throws PulsarClientException &#123;        User jack = User.builder()                .age(18)                .name(&quot;Jack&quot;)                .build();        User xiao = User.builder()                .age(20)                .name(&quot;xiao&quot;)                .build();        List&lt;User&gt; users = new ArrayList&lt;&gt;(2);        users.add(xiao);        users.add(jack);        pulsarTemplate.sendJsonArrayMsg(&quot;topic&quot;,users);    &#125;&#125;</code></pre><blockquote><ul><li>消费者使用示例</li></ul></blockquote><pre><code class="java">@Service@Slf4jpublic class ReceiveDataService &#123;    @PulsarConsumer(topic =&quot;#consumers[0]&quot;,clazz = Serialization.JSON)    public void receive(JSONObject msg)&#123;        log.info(&quot;receive msg:&#123;&#125;&quot;,msg);    &#125;    @PulsarConsumer(topic =&quot;#consumers[1]&quot;,clazz = Serialization.STRING)    public void receive(String msg)&#123;        log.info(&quot;receive msg:&#123;&#125;&quot;,msg);    &#125;    @PulsarConsumer(topic =&quot;#consumers[2]&quot;,clazz = Serialization.JSON_ARRAY)    public void receive(JSONArray msg)&#123;        log.info(&quot;receive msg:&#123;&#125;&quot;,msg);    &#125;&#125;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 开源项目 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 开源 </tag>
+            
+            <tag> pulsar </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>smart_auth_util 权限认证工具</title>
+      <link href="2020/12/25/2020-09-11-smart-auth-util/"/>
+      <url>2020/12/25/2020-09-11-smart-auth-util/</url>
+      
+        <content type="html"><![CDATA[<h1 id="权限认证工具"><a href="#权限认证工具" class="headerlink" title="权限认证工具"></a>权限认证工具</h1><p><a href="https://github.com/Swayingleaves/smart-auth-util">Github地址 </a></p><h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><blockquote><p> 配置本地maven 以适配私服，或者修改为自己的私服配置</p></blockquote><blockquote><p>pom引入依赖</p></blockquote><pre><code class="xml">&lt;dependency&gt;    &lt;groupId&gt;com.swayingleaves&lt;/groupId&gt;    &lt;artifactId&gt;smart-auth-util&lt;/artifactId&gt;    &lt;version&gt;$&#123;latest-version&#125;&lt;/version&gt;&lt;/dependency&gt;</code></pre><blockquote><ul><li>要使用auth-util,使用的项目需要的Redis配置相同</li><li>实现强依赖Redis，请配置Redis相关</li></ul></blockquote><pre><code class="yaml">spring:  redis:    host: 127.0.0.1    port: 6379    database: xx    password: xxxx</code></pre><blockquote><ul><li>启动类添加扫描包注解</li></ul></blockquote><pre><code class="java">@ComponentScan(basePackages = &#123;&quot;com.swayingleaves&quot;&#125;)</code></pre><blockquote><ul><li>不一定能适用于大家的项目，但是看下实现逻辑就好</li></ul></blockquote><h2 id="使用说明"><a href="#使用说明" class="headerlink" title="使用说明"></a>使用说明</h2><p>详细的参看</p><p><a href="https://github.com/Swayingleaves/smart-auth-util">Github地址 </a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 开源项目 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 认证 </tag>
+            
+            <tag> 开源 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>hello world</title>
+      <link href="2020/12/25/2020-06-06-helloworld/"/>
+      <url>2020/12/25/2020-06-06-helloworld/</url>
+      
+        <content type="html"><![CDATA[<p><strong>在2010年的时候，那时村里刚通网，怀着对世界的好奇浏览各种形形色色的网页、博客或贴吧，那时心里就萌发了要建立一个自己的博客网站的想法，真正付诸行动的是在2015年，也就是刚入大学的时候，于是开始搭建自己的网站博客，怀着自己也即将在这无垠的互联网拥有一个小角落的激动心情注册了一个域名，并且在某云上买了9.9包月的学生虚拟机。备案，写模板，上传，发布….耶~~我也有了自己的网站了，那时候很开心，但是却只是个index.html的首页，除此外别无其他内容，如果说大学是一个湖泊，那我就是里面一条浪浪荡荡的鱼，什么地方都去游一遍，但是记忆却只有7秒，什么知识都没收进口袋里。自然，由于“囊中羞涩”，什么东西都不敢放在这个小角落里，慢慢这个网站也蒙上了厚厚的尘。</strong></p><p><strong>后来，快毕业了，工作了，接触了第一份工作，写了第一行代码，完成了第一个项目，拿到了第一份工资，在日积月累中，自己的代码水平在慢慢升高，也越来越意识到写博客文对于敲代码的益处，于是，就在6.1号，决定再次重启这个想法，并决定将它作为一项计划，所以，写下首记，谨此来提醒自己。</strong></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 日常 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+  
+  
+</search>
