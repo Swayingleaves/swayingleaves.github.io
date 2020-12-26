@@ -5,12 +5,13 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Feign-provider-customer - Swayingleaves</title>
+    <title>Feign-Hystrix - Swayingleaves</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="swayingleaves blog,"> 
-    <meta name="description" content="项目中常用的架构如图，Erueka作为服务的注册和发现中心，服务提供者provider和消费者consumer通过server注册和发现服务，本文主要讨论搭建如图架构和使用Feign实现声明式调用。,"> 
+    <meta name="description" content="使用Hystrix作为熔断器使得调用服务时出现的各种崩溃得到保护，这里我们只讨论如何实现。
+如前几篇文章我们搭建了一个高可用的sever服务，并注册了服务provider和服务customer，现在,"> 
     <meta name="author" content="zhenglin"> 
     <link rel="alternative" href="atom.xml" title="Swayingleaves" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.png"> 
@@ -58,7 +59,7 @@
     <div class="navigation animated fadeIn fast delay-1s">
         <img id="home-icon" class="icon-home" src="/img/favicon.png" alt="" data-url="http://example.com">
         <div id="play-icon" title="Play/Pause" class="iconfont icon-play"></div>
-        <h3 class="subtitle">Feign-provider-customer</h3>
+        <h3 class="subtitle">Feign-Hystrix</h3>
         <div class="social">
             <!--        <div class="like-icon">-->
             <!--            <a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
@@ -91,22 +92,22 @@
                 <a href="/categories/springcloud"><b>「
                     </b>SPRINGCLOUD<b> 」</b></a>
                 
-                十二月 25, 2020
+                十二月 26, 2020
             </p>
-            <h3 class="post-title animated fadeInDown"><a href="/2020/12/25/2020-08-08-Feign-provider-customer/" title="Feign-provider-customer" class="">Feign-provider-customer</a>
+            <h3 class="post-title animated fadeInDown"><a href="/2020/12/26/2020-08-08-Feign-Hystrix/" title="Feign-Hystrix" class="">Feign-Hystrix</a>
             </h3>
             
             <p class="post-count animated fadeInDown">
                 
                 <span>
                     <b class="iconfont icon-text2"></b> <i>文章字数</i>
-                    4k
+                    919
                 </span>
                 
                 
                 <span>
                     <b class="iconfont icon-timer__s"></b> <i>阅读约需</i>
-                    4 mins.
+                    1 mins.
                 </span>
                 
                 
@@ -140,126 +141,28 @@
 <div class="article">
     <div class='main'>
         <div class="content markdown animated fadeIn">
-            <p>项目中常用的架构如图，Erueka作为服务的注册和发现中心，服务提供者provider和消费者consumer通过server注册和发现服务，本文主要讨论搭建如图架构和使用Feign实现声明式调用。sever和client参考之前的文章】</p>
-<p><img src="/images/image-10.png"></p>
-<h3 id="1、provider"><a href="#1、provider" class="headerlink" title="1、provider"></a>1、provider</h3><p>yaml配置</p>
-<pre><code class="yaml">spring:
-  application:
-    #    用户指定注册到server上的应用名
-    name: provider
-eureka:
-  client:
-    service-url:
-      defaultZone: http://test:12345@localhost:8761/eureka/,http://test:12345@localhost:8762/eureka/,http://test:12345@localhost:8763/eureka/
-  instance:
-    #    将自己的ip注册上
-    prefer-ip-address: true
-server:
-  port: 8759</code></pre>
-<p>启动类</p>
-<pre><code class="java">package com.example.eurekaprovider;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-
-@SpringBootApplication
-@EnableDiscoveryClient
-public class EurekaProviderApplication &#123;
-
-    public static void main(String[] args) &#123;
-        SpringApplication.run(EurekaProviderApplication.class, args);
-    &#125;
-
-&#125;</code></pre>
-<p>这里作为服务提供者，提供一个接口：</p>
-<pre><code class="java">package com.example.eurekaprovider.controller;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-/**
- * &lt;p&gt;描述: 服务提供 &lt;/p&gt;
- *
- * @author zhenglin
- * @since 2020/8/8 10:16 上午
- */
-@RestController
-@Slf4j
-public class InfoController &#123;
-
-    @GetMapping(&quot;/getInfo&quot;)
-    public String getInfo(String msg)&#123;
-        return msg+&quot;_hello&quot;;
+            <p>使用Hystrix作为熔断器使得调用服务时出现的各种崩溃得到保护，这里我们只讨论如何实现。</p>
+<p>如前几篇文章我们搭建了一个高可用的sever服务，并注册了服务provider和服务customer，现在我们使用Hystrix来模拟provider服务下线的作用。</p>
+<p>创建一个实现类实现HelloService，并重写返回</p>
+<pre><code class="java">@Component
+public class HelloHystrixServiceImpl implements HelloService&#123;
+    @Override
+    public String getInfo(@RequestParam String msg) &#123;
+        return &quot;this is not working&quot;;
     &#125;
 &#125;</code></pre>
-<h3 id="2、customer"><a href="#2、customer" class="headerlink" title="2、customer"></a>2、customer</h3><p>maven引入依赖</p>
-<pre><code class="xml"> &lt;dependency&gt;
-            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-cloud-starter-feign&lt;/artifactId&gt;
-            &lt;version&gt;1.4.7.RELEASE&lt;/version&gt;
-  &lt;/dependency&gt;</code></pre>
-<p>启动加上@EnableFeignClients注解</p>
-<pre><code class="java">package com.example.eureka;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-
-@SpringBootApplication
-@EnableDiscoveryClient
-@EnableFeignClients
-public class EurekaCustomerApplication &#123;
-
-    public static void main(String[] args) &#123;
-        SpringApplication.run(EurekaCustomerApplication.class, args);
-    &#125;
-
-&#125;</code></pre>
-<p>创建一个接口，创建要调用的方法使其和provider提供的接口一致</p>
-<pre><code class="java">package com.example.eureka.service;
-
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-@FeignClient(name= &quot;provider&quot;)
+<p>在HelloService指定fallback的处理</p>
+<pre><code class="java">@FeignClient(name= &quot;provider&quot;,fallback = HelloHystrixServiceImpl.class)
 public interface HelloService &#123;
 
-     //@RequestParam对应GET方法是必要的，否则请求将转换为POST调用出现Method Not Allowed
     @GetMapping(value = &quot;/getInfo&quot;)
     String getInfo(@RequestParam String msg);
 &#125;</code></pre>
-<p>然后写一个controller调用接口</p>
-<pre><code class="java">package com.example.eureka.controller;
-
-import com.example.eureka.service.HelloService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-/**
- * &lt;p&gt;描述: controller &lt;/p&gt;
- *
- * @author zhenglin
- * @since 2020/8/8 10:25 上午
- */
-@RestController
-public class HelloController &#123;
-
-    @Autowired
-    HelloService helloService;
-
-    @GetMapping(&quot;/testGetInfo&quot;)
-    public String getInfo(String msg)&#123;
-        return helloService.getInfo(msg);
-    &#125;
-&#125;</code></pre>
-<p>访问：localhost:8760/testGetInfo</p>
-<p>返回</p>
-<p><img src="/images/image-11.png"></p>
+<p>先调用一下接口: localhost:8760/testGetInfo?msg=zl</p>
+<p><img src="/images/image-12.png"></p>
+<p>kill掉provider的服务，再调用接口</p>
+<p><img src="/images/image-13.png"></p>
+<p>再启动provider，稍等一会儿，接口又可以正常服务了</p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls"
@@ -314,13 +217,6 @@ public class HelloController &#123;
             </div>
             
             
-            
-            <div class="box sticky animated fadeInRight faster">
-                <div id="toc" class="subbox">
-                    <h4>目录</h4>
-                    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81provider"><span class="toc-number">1.</span> <span class="toc-text">1、provider</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81customer"><span class="toc-number">2.</span> <span class="toc-text">2、customer</span></a></li></ol>
-                </div>
-            </div>
             
             
         </div>
